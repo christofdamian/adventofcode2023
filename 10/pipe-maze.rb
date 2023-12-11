@@ -42,13 +42,25 @@ def links(maze)
   return [start, links]
 end
 
+def print_maze(maze)
+  maze.each do |row|
+    row.each do |field|
+      print field
+    end
+    puts
+  end
+end
+
 ######################################
 
 maze = []
+pipe = []
 STDIN.each_with_index do |row, y|
   row.strip.split("").each_with_index do |c, x|
     maze[y] ||= []
     maze[y][x] = c
+    pipe[y] ||= []
+    pipe[y][x] = '.'
   end
 end
 
@@ -60,6 +72,9 @@ last_position = nil
 position = start
 length = 0
 loop do
+  y, x = position.split("-").map(&:to_i)
+  pipe[y][x] = maze[y][x]
+
   tmp = links[position].filter { |p| p!=last_position }.first
   last_position = position
   position = tmp
@@ -67,4 +82,40 @@ loop do
   break if position==start
 end
 
+
+puts "Part 1"
 puts length/2
+
+puts "Part 2"
+
+# figuring out what the 'S' is. This doesn't cover all cases.
+y, x = start.split("-").map(&:to_i)
+if ['-', '7','J'].include?(pipe[y][x+1]) then
+  if ['|', 'L','J'].include?(pipe[y+1][x]) then
+    pipe[y][x] = 'F'
+  elsif ['|', 'F','7'].include?(pipe[y-1][x]) then
+    pipe[y][x] = 'L'
+  end
+end
+
+pipe.each_with_index do |row, y|
+  outside = true
+  row.each_with_index do |field, x|
+    case field
+    when '.'
+      pipe[y][x] = outside ? 'O' : 'I'
+    when '|', 'F', '7'
+      outside = !outside
+    end
+  end
+end
+
+sum = 0
+pipe.each do |row|
+  row.each do |field|
+    sum = sum+1 if field=='I'
+  end
+end
+
+puts "filled"
+puts sum
